@@ -7,15 +7,27 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class LogIn implements ActionListener {
-    String cusName, accountNumber, password;
+    String accountNumber, password;
     Frame mainWindow;
-    TextField cusNameField,accountNumberField,passwordField;
+    TextField accountNumberField, passwordField;
     Button logInButton, clearButton;
+    Label message;
 
     LogIn() {
-        mainWindow = new Frame("Log In");
+        mainWindow = new Frame();
+        logInMenu(mainWindow);
+    }
+
+    LogIn(Frame mainWindow) {
+        logInMenu(mainWindow);
+    }
+
+    public void logInMenu(Frame mainWindow) {
+        this.mainWindow = mainWindow;
+        mainWindow.setTitle("Log In");
 
         mainWindow.setSize(600, 200);
+        mainWindow.setResizable(false);
         mainWindow.setLayout(new GridLayout(4, 2, 10, 10));
 
         mainWindow.addWindowListener(new WindowAdapter() {
@@ -24,13 +36,6 @@ public class LogIn implements ActionListener {
                 mainWindow.dispose();
             }
         });
-
-        Label cusNameLabel = new Label("Name: ");
-        cusNameLabel.setAlignment(Label.RIGHT);
-        mainWindow.add(cusNameLabel);
-
-        cusNameField = new TextField();
-        mainWindow.add(cusNameField);
 
         Label accountNumberLabel = new Label("Account Number:");
         accountNumberLabel.setAlignment(Label.RIGHT);
@@ -55,23 +60,44 @@ public class LogIn implements ActionListener {
         clearButton.addActionListener(this);
         mainWindow.add(clearButton);
 
+        message = new Label("Please Enter your Account Number and Password");
+        mainWindow.add(message);
+
         mainWindow.setVisible(true);
     }
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == logInButton) {
-            cusName = cusNameField.getText();
-            accountNumber = accountNumberField.getText();
-            password = passwordField.getText();
-            mainWindow.removeAll();
-            mainWindow.setTitle(cusName + " " + accountNumber);
-            new BankAccount(mainWindow);
-        }
-
-        else if (e.getSource() == clearButton) {
-            cusNameField.setText("");
+            authenticateLogIn();
+        } else if (e.getSource() == clearButton) {
+//            cusNameField.setText("");
             accountNumberField.setText("");
             passwordField.setText("");
         }
+    }
+
+    private void authenticateLogIn() {
+        accountNumber = accountNumberField.getText();
+        password = passwordField.getText();
+
+        if (accountNumber.length() == 10) {
+            message.setText("Validating Details . . . . ");
+
+            try {
+                var sqlImport = new SQLImport(accountNumber);
+                if (sqlImport.authenticate(password)) {
+                    mainWindow.removeAll();
+                    new BankAccount(mainWindow, accountNumber);
+                } else
+                    message.setText("Incorrect Account Number or Incorrect Password");
+            } catch (Exception e) {
+                message.setText("Error: " + e.getMessage());
+            }
+        } else if (accountNumber.length() == 0)
+            message.setText("PLease Enter the Account Number");
+        else if (password.length() == 0)
+            message.setText("Please Enter the password");
+        else
+            message.setText("Enter a valid Account Numeber");
     }
 }

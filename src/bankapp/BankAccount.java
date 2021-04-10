@@ -3,131 +3,223 @@ package bankapp;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.text.NumberFormat;
 
 public class BankAccount implements ActionListener {
-    double balance = Math.random() * 100000;
-    double amt, prevTransaction;
+    double balance;
+    double amt;
+    double prevTransaction;
+    String accountNumber;
     Frame mainWindow;
-    Button checkBalBut, withdrawBut, depositBut, checkPrevTransactionBut,goBackBut, submitWithdrawBut, submitDepositBut;
-    Label result, enterAmt;
-    TextField amtInput;
-    NumberFormat inr = NumberFormat.getCurrencyInstance();
+    Button checkBalButton,
+            withdrawButton,
+            depositButton,
+            checkPrevTransactionButton,
+            logOutButton,
+            goBackButton,
+            submitWithdrawButton,
+            submitDepositButton;
+    Label result;
+    Label enterAmount;
+    TextField amountInput;
+    final NumberFormat inr = NumberFormat.getCurrencyInstance();
+    SQLImport sqlImport;
 
-    BankAccount(Frame mainWindow) {
+    BankAccount(Frame mainWindow,String accountNumber) {
         this.mainWindow = mainWindow;
+        this.accountNumber = accountNumber;
+        connectDatabase();
         mainMenu();
     }
-    void mainMenu() {
+
+    private void connectDatabase() {
+        try {
+            sqlImport = new SQLImport(accountNumber);
+            setBalance();
+        }
+        catch (Exception e) {
+            result.setText("Error: " + e.getMessage());
+        }
+    }
+    private void mainMenu() {
         mainWindow.setSize(400,400);
-        mainWindow.setLayout(new GridLayout(6,1,0,10));
+        mainWindow.setLayout(new GridLayout(7,1,0,10));
         Label welcomeMessage = new Label("Welcome to ACACA Bank");
         welcomeMessage.setAlignment(Label.CENTER);
         mainWindow.add(welcomeMessage);
 
-        checkBalBut = new Button("Check Balance");
-        checkBalBut.addActionListener(this);
-        mainWindow.add(checkBalBut);
+        checkBalButton = new Button("Check Balance");
+        checkBalButton.addActionListener(this);
+        mainWindow.add(checkBalButton);
 
-        withdrawBut = new Button("Withdraw");
-        withdrawBut.addActionListener(this);
-        mainWindow.add(withdrawBut);
+        withdrawButton = new Button("Withdraw");
+        withdrawButton.addActionListener(this);
+        mainWindow.add(withdrawButton);
 
-        depositBut =  new Button("Deposit");
-        depositBut.addActionListener(this);
-        mainWindow.add(depositBut);
+        depositButton =  new Button("Deposit");
+        depositButton.addActionListener(this);
+        mainWindow.add(depositButton);
 
-        checkPrevTransactionBut = new Button("Check Previous Transaction");
-        checkPrevTransactionBut.addActionListener(this);
-        mainWindow.add(checkPrevTransactionBut);
+        checkPrevTransactionButton = new Button("Check Previous Transaction");
+        checkPrevTransactionButton.addActionListener(this);
+        mainWindow.add(checkPrevTransactionButton);
+
+        logOutButton = new Button("Log Out");
+        logOutButton.addActionListener(this);
+        mainWindow.add(logOutButton);
 
         result = new Label("");
         result.setAlignment(Label.CENTER);
         mainWindow.add(result);
+        try {
+            mainWindow.setTitle(new SQLImport(accountNumber).getCustomerName() + accountNumber);
+        }
+        catch (Exception e) {
+            result.setText("Error: " + e.getMessage());
+        }
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == checkBalBut)
+        if (e.getSource() == checkBalButton)
             checkBal();
-        else if (e.getSource() == withdrawBut)
-            withdraw();
-        else if (e.getSource() == depositBut)
-            deposit();
-        else if (e.getSource() == checkPrevTransactionBut)
+        else if (e.getSource() == withdrawButton)
+            withdrawWindow();
+        else if (e.getSource() == depositButton)
+            depositWindow();
+        else if (e.getSource() == checkPrevTransactionButton)
             prevTransactionFunc();
-        else if (e.getSource() == goBackBut) {
+        else if (e.getSource() == goBackButton) {
             mainWindow.removeAll();
             mainMenu();
         }
-        else if (e.getSource() == submitWithdrawBut) {
-            amt = Double.parseDouble(amtInput.getText());
-            if (amt > balance)
-                result.setText("Insufficient Balance");
-            else {
-                balance -= amt;
-                result.setText(inr.format(amt) + " Withdrawn");
-                prevTransaction = -amt;
+        else if (e.getSource() == submitWithdrawButton || e.getSource() == submitDepositButton) {
+            result.setText("Processing . . .");
+            if (amountInput.getText().equals("")) {
+                result.setText("Enter amount");
+                return;
             }
+            amt = Double.parseDouble(amountInput.getText());
+            if (e.getSource() == submitWithdrawButton)
+                withdraw(amt);
+            else
+                deposit(amt);
         }
-        else if (e.getSource() == submitDepositBut) {
-            amt = Double.parseDouble(amtInput.getText());
-            balance += amt;
-            prevTransaction = amt;
-            result.setText(inr.format(amt) + " Deposited");
+        else if (e.getSource() == logOutButton) {
+            mainWindow.removeAll();
+            new LogIn(mainWindow);
         }
     }
 
-    void checkBal() {
+    private void setBalance() {
+        try {
+            balance = sqlImport.getBalance();
+        } catch (Exception e) {
+            result.setText("Error: Please try again");
+        }
+    }
+
+    private void checkBal() {
         result.setText("Balance: " + inr.format(balance));
     }
 
-    void withdraw() {
+    private void withdrawWindow() {
         mainWindow.removeAll();
         mainWindow.setLayout(new GridLayout(3,2,10,10));
         mainWindow.setSize(400,150);
-        enterAmt = new Label("Enter Amount to Withdraw:");
-        mainWindow.add(enterAmt);
+        enterAmount = new Label("Enter Amount to Withdraw:");
+        mainWindow.add(enterAmount);
 
-        amtInput = new TextField();
-        mainWindow.add(amtInput);
+        amountInput = new TextField();
+        amountValidation(amountInput);
+        mainWindow.add(amountInput);
 
-        goBackBut = new Button("Go Back");
-        goBackBut.addActionListener(this);
-        mainWindow.add(goBackBut);
+        goBackButton = new Button("Go Back");
+        goBackButton.addActionListener(this);
+        mainWindow.add(goBackButton);
 
-        submitWithdrawBut = new Button("Submit");
-        submitWithdrawBut.addActionListener(this);
-        mainWindow.add(submitWithdrawBut);
+        submitWithdrawButton = new Button("Submit");
+        submitWithdrawButton.addActionListener(this);
+        mainWindow.add(submitWithdrawButton);
 
         result = new Label();
         result.setAlignment(Label.CENTER);
         mainWindow.add(result);
     }
 
-    void deposit() {
+    private void depositWindow() {
         mainWindow.removeAll();
         mainWindow.setLayout(new GridLayout(3,2,10,10));
         mainWindow.setSize(400,150);
-        enterAmt = new Label("Enter Amount to Deposit:");
-        mainWindow.add(enterAmt);
+        enterAmount = new Label("Enter Amount to Deposit:");
+        mainWindow.add(enterAmount);
 
-        amtInput = new TextField();
-        mainWindow.add(amtInput);
+        amountInput = new TextField();
+        amountValidation(amountInput);
+        mainWindow.add(amountInput);
 
-        goBackBut = new Button("Go Back");
-        goBackBut.addActionListener(this);
-        mainWindow.add(goBackBut);
+        goBackButton = new Button("Go Back");
+        goBackButton.addActionListener(this);
+        mainWindow.add(goBackButton);
 
-        submitDepositBut = new Button("Submit");
-        submitDepositBut.addActionListener(this);
-        mainWindow.add(submitDepositBut);
+        submitDepositButton = new Button("Submit");
+        submitDepositButton.addActionListener(this);
+        mainWindow.add(submitDepositButton);
 
         result = new Label();
         result.setAlignment(Label.CENTER);
         mainWindow.add(result);
     }
 
-    void prevTransactionFunc() {
+    private void amountValidation(TextField amtInput) {
+        amtInput.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if ( !(e.getKeyChar() >= '0' && e.getKeyChar() <= '9')
+                        && e.getKeyCode() != KeyEvent.VK_BACK_SPACE
+                        && e.getKeyChar() != '.')
+                    e.consume();
+            }
+        });
+    }
+
+    private void withdraw(double amt) {
+        if (amt == 0) {
+            result.setText("Enter a valid amount");
+        }
+        else if (amt > balance)
+            result.setText("Insufficient Balance");
+        else {
+            balance -= amt;
+            try {
+                sqlImport.setBalance(balance);
+                result.setText(inr.format(amt) + " Withdrawn");
+                prevTransaction = -amt;
+            }
+            catch (Exception e) {
+                result.setText("Error: Please Try Again " + e.getMessage());
+            }
+        }
+    }
+
+    private void deposit(double amt) {
+        if (amt == 0) {
+            result.setText("Enter a valid amount");
+            return;
+        }
+        balance += amt;
+        try {
+            sqlImport.setBalance(balance);
+            result.setText(inr.format(amt) + " Deposited");
+            prevTransaction = amt;
+        }
+        catch (Exception e) {
+            result.setText("Error: Please Try Again " + e.getMessage());
+        }
+    }
+
+    private void prevTransactionFunc() {
         if (amt == 0)
             result.setText("No Previous Transaction");
         else if (amt > 0)
