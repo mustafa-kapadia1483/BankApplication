@@ -57,4 +57,18 @@ public class SQLImport {
         resultSet.next();
         return resultSet.getString(1) + " " + resultSet.getString(2);
     }
+
+    public double getPreviousTransaction() throws SQLException {
+        query = "SELECT previous_transaction FROM custinformation " +
+                "WHERE account_number = '" + accountNumber + "'";
+        resultSet = statement.executeQuery(query);
+        resultSet.next();
+        return resultSet.getDouble(1);
+    }
+
+    public void setPreviousTransaction(double amount) throws SQLException {
+            query = "UPDATE custinformation SET previous_transaction = " + amount + " " +
+                    "WHERE account_number = '" + accountNumber + "'";
+            statement.executeUpdate(query);
+    }
 }

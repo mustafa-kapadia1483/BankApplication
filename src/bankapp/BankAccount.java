@@ -1,16 +1,12 @@
 package bankapp;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.text.NumberFormat;
 
 public class BankAccount implements ActionListener {
     double balance;
-    double amt;
-    double prevTransaction;
+    double amount;
     String accountNumber;
     Frame mainWindow;
     Button checkBalButton,
@@ -89,7 +85,7 @@ public class BankAccount implements ActionListener {
         else if (e.getSource() == depositButton)
             depositWindow();
         else if (e.getSource() == checkPrevTransactionButton)
-            prevTransactionFunc();
+            getPreviousTransactionMessage();
         else if (e.getSource() == goBackButton) {
             mainWindow.removeAll();
             mainMenu();
@@ -100,11 +96,11 @@ public class BankAccount implements ActionListener {
                 result.setText("Enter amount");
                 return;
             }
-            amt = Double.parseDouble(amountInput.getText());
+            amount = Double.parseDouble(amountInput.getText());
             if (e.getSource() == submitWithdrawButton)
-                withdraw(amt);
+                withdraw(amount);
             else
-                deposit(amt);
+                deposit(amount);
         }
         else if (e.getSource() == logOutButton) {
             mainWindow.removeAll();
@@ -184,18 +180,18 @@ public class BankAccount implements ActionListener {
         });
     }
 
-    private void withdraw(double amt) {
-        if (amt == 0) {
+    private void withdraw(double amount) {
+        if (amount == 0) {
             result.setText("Enter a valid amount");
         }
-        else if (amt > balance)
+        else if (amount > balance)
             result.setText("Insufficient Balance");
         else {
-            balance -= amt;
+            balance -= amount;
             try {
                 sqlImport.setBalance(balance);
-                result.setText(inr.format(amt) + " Withdrawn");
-                prevTransaction = -amt;
+                result.setText(inr.format(amount) + " Withdrawn");
+                sqlImport.setPreviousTransaction(-amount);
             }
             catch (Exception e) {
                 result.setText("Error: Please Try Again " + e.getMessage());
@@ -203,28 +199,35 @@ public class BankAccount implements ActionListener {
         }
     }
 
-    private void deposit(double amt) {
-        if (amt == 0) {
+    private void deposit(double amount) {
+        if (amount == 0) {
             result.setText("Enter a valid amount");
             return;
         }
-        balance += amt;
+        balance += amount;
         try {
             sqlImport.setBalance(balance);
-            result.setText(inr.format(amt) + " Deposited");
-            prevTransaction = amt;
+            result.setText(inr.format(amount) + " Deposited");
+            sqlImport.setPreviousTransaction(amount);
         }
         catch (Exception e) {
             result.setText("Error: Please Try Again " + e.getMessage());
         }
     }
 
-    private void prevTransactionFunc() {
-        if (amt == 0)
+    private void getPreviousTransactionMessage() {
+        result.setText("Processing . . .");
+        try {
+            amount = new SQLImport(accountNumber).getPreviousTransaction();
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        if (amount == 0)
             result.setText("No Previous Transaction");
-        else if (amt > 0)
-            result.setText(inr.format(Math.abs(amt)) + " was withdrawn");
+        else if (amount < 0)
+            result.setText(inr.format(Math.abs(amount)) + " was withdrawn");
         else
-            result.setText(inr.format(Math.abs(amt)) + " was deposited");
+            result.setText(inr.format(Math.abs(amount)) + " was deposited");
     }
 }

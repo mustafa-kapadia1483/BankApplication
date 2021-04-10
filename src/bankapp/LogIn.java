@@ -1,10 +1,7 @@
 package bankapp;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 public class LogIn implements ActionListener {
     String accountNumber, password;
@@ -42,6 +39,15 @@ public class LogIn implements ActionListener {
         mainWindow.add(accountNumberLabel);
 
         accountNumberField = new TextField();
+        accountNumberField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (!((e.getKeyChar() >= 'A' && e.getKeyChar() <= 'Z')
+                        || e.getKeyChar() > 'a' && e.getKeyChar() < 'z'
+                        || e.getKeyChar() >= '0' && e.getKeyChar() < '9'))
+                    e.consume();
+            }
+        });
         mainWindow.add(accountNumberField);
 
         Label passwordLabel = new Label("Password: ");
@@ -70,7 +76,6 @@ public class LogIn implements ActionListener {
         if (e.getSource() == logInButton) {
             authenticateLogIn();
         } else if (e.getSource() == clearButton) {
-//            cusNameField.setText("");
             accountNumberField.setText("");
             passwordField.setText("");
         }
