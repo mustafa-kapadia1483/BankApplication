@@ -1,2 +1,2 @@
 # BankApplication
-Just a Simple Banking App made using AWT package of Java
+Simple Banking App with Database Connectivity made using AWT package of Java
