@@ -103,6 +103,6 @@ public class LogIn implements ActionListener {
         else if (password.length() == 0)
             message.setText("Please Enter the password");
         else
-            message.setText("Enter a valid Account Numeber");
+            message.setText("Enter a valid Account Number");
     }
 }

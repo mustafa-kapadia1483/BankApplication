@@ -112,7 +112,7 @@ public class BankAccount implements ActionListener {
         try {
             balance = sqlImport.getBalance();
         } catch (Exception e) {
-            result.setText("Error: Please try again");
+            result.setText("Error: Please try again" + e.getMessage());
         }
     }
 
