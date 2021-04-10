@@ -42,7 +42,7 @@ public class BankAccount implements ActionListener {
     private void mainMenu() {
         mainWindow.setSize(400,400);
         mainWindow.setLayout(new GridLayout(7,1,0,10));
-        Label welcomeMessage = new Label("Welcome to ACACA Bank");
+        Label welcomeMessage = new Label("Welcome to MKSG Bank");
         welcomeMessage.setAlignment(Label.CENTER);
         mainWindow.add(welcomeMessage);
 
@@ -70,7 +70,7 @@ public class BankAccount implements ActionListener {
         result.setAlignment(Label.CENTER);
         mainWindow.add(result);
         try {
-            mainWindow.setTitle(new SQLImport(accountNumber).getCustomerName() + accountNumber);
+            mainWindow.setTitle(new SQLImport(accountNumber).getCustomerName() + " " + accountNumber);
         }
         catch (Exception e) {
             result.setText("Error: " + e.getMessage());

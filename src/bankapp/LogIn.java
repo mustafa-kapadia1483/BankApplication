@@ -44,7 +44,7 @@ public class LogIn implements ActionListener {
             public void keyPressed(KeyEvent e) {
                 if (!((e.getKeyChar() >= 'A' && e.getKeyChar() <= 'Z')
                         || e.getKeyChar() > 'a' && e.getKeyChar() < 'z'
-                        || e.getKeyChar() >= '0' && e.getKeyChar() < '9'))
+                        || e.getKeyChar() >= '0' && e.getKeyChar() <= '9'))
                     e.consume();
             }
         });
